@@ -25,12 +25,13 @@ namespace Elvarus
         #region Static Fields
 
         public static Orbwalking.Orbwalker Orbwalker;
+        public static int LastQ, LastE;
 
         public static Dictionary<Spells, Spell> spells = new Dictionary<Spells, Spell>
                                                              {
                                                                  { Spells.Q, new Spell(SpellSlot.Q, 925f) },
                                                                  { Spells.W, new Spell(SpellSlot.W, 0) },
-                                                                 { Spells.E, new Spell(SpellSlot.E, 950f) },
+                                                                 { Spells.E, new Spell(SpellSlot.E, 1050f) },
                                                                  { Spells.R, new Spell(SpellSlot.R, 1100) }
                                                              };
 
@@ -58,7 +59,7 @@ namespace Elvarus
             }
 
             spells[Spells.Q].SetSkillshot(.25f, 70f, 1800f, false, SkillshotType.SkillshotLine);
-            spells[Spells.E].SetSkillshot(0.25f, 250f, 1500f, false, SkillshotType.SkillshotCircle);
+            spells[Spells.E].SetSkillshot(0.50f, 250f, 1400, false, SkillshotType.SkillshotCircle);
             spells[Spells.R].SetSkillshot(.25f, 120f, 1950f, false, SkillshotType.SkillshotLine);
 
             spells[Spells.Q].SetCharged("VarusQ", "VarusQ", 250, 1700, 1.2f);
@@ -76,20 +77,35 @@ namespace Elvarus
         {
             var target = TargetSelector.GetTarget(
                 (spells[Spells.Q].ChargedMaxRange + spells[Spells.Q].Width) * 1.1f,
-                TargetSelector.DamageType.Magical);
+                TargetSelector.DamageType.Physical);
             if (target == null)
             {
                 return;
             }
 
             Items(target);
+			
 
             if (spells[Spells.E].IsReady() && !spells[Spells.Q].IsCharging
-                && ElVarusMenu.Menu.Item("ElVarus.Combo.E").IsActive())
+                && ElVarusMenu.Menu.Item("ElVarus.Combo.E").IsActive() && ElVarusMenu.Menu.Item("ElVarus.omfgabriel").GetValue<StringList>().SelectedIndex == 0
+				&& LastQ + 1000 < Environment.TickCount && GetWStacks(target) >= ElVarusMenu.Menu.Item("ElVarus.ComboE.Stack.Count").GetValue<Slider>().Value )
+            {
+		
+                    var prediction = spells[Spells.E].GetPrediction(target);
+                    if (prediction.Hitchance >= HitChance.Low)
+                    {
+                        spells[Spells.E].Cast(prediction.CastPosition);
+						LastE = Environment.TickCount;						
+                    }
+
+            }
+			
+            if (spells[Spells.E].IsReady() && !spells[Spells.Q].IsCharging
+                && ElVarusMenu.Menu.Item("ElVarus.Combo.E").IsActive() && ElVarusMenu.Menu.Item("ElVarus.omfgabriel").GetValue<StringList>().SelectedIndex == 1)
             {
 
                     var prediction = spells[Spells.E].GetPrediction(target);
-                    if (prediction.Hitchance >= HitChance.VeryHigh)
+                    if (prediction.Hitchance >= HitChance.High)
                     {
                         spells[Spells.E].Cast(prediction.CastPosition);
                     }
@@ -98,12 +114,12 @@ namespace Elvarus
 
 
 			
-            if (spells[Spells.Q].IsReady() && ElVarusMenu.Menu.Item("ElVarus.Combo.Q").IsActive() && ElVarusMenu.Menu.Item("ElVarus.omfgabriel").IsActive() == false)
+            if (spells[Spells.Q].IsReady() && ElVarusMenu.Menu.Item("ElVarus.Combo.Q").IsActive() && ElVarusMenu.Menu.Item("ElVarus.omfgabriel").GetValue<StringList>().SelectedIndex == 0)
             {
-                if (spells[Spells.Q].IsCharging || ElVarusMenu.Menu.Item("ElVarus.combo.always.Q").IsActive()
+                if (( spells[Spells.Q].IsCharging && !spells[Spells.E].IsReady() && Environment.TickCount > LastE + 1000 || ElVarusMenu.Menu.Item("ElVarus.combo.always.Q").IsActive()
 
-                    || GetWStacks(target) >= ElVarusMenu.Menu.Item("ElVarus.Combo.Stack.Count").GetValue<Slider>().Value
-                    || spells[Spells.Q].IsKillable(target))
+                    || GetWStacks(target) >= ElVarusMenu.Menu.Item("ElVarus.Combo.Stack.Count").GetValue<Slider>().Value && !spells[Spells.E].IsReady() && Environment.TickCount > LastE + 1000
+                    || spells[Spells.Q].IsKillable(target)))
                 {
                     if (!spells[Spells.Q].IsCharging)
                     {
@@ -112,10 +128,11 @@ namespace Elvarus
 
                     if (spells[Spells.Q].IsCharging)
                     {
-                        if (ObjectManager.Player.HealthPercent <= 30 || target.Distance(ObjectManager.Player) < 1200)	
+                        if (ObjectManager.Player.HealthPercent <= 30 || target.Distance(ObjectManager.Player) < 1500)	
                             
 							{
                                 spells[Spells.Q].Cast(target);
+								LastQ = Environment.TickCount;						
                             }		
 					}
 					
@@ -125,12 +142,13 @@ namespace Elvarus
                         if (prediction.Hitchance >= HitChance.VeryHigh)
                         {
                             spells[Spells.Q].Cast(prediction.CastPosition);
+							LastQ = Environment.TickCount;						
                         }
                     }
                 }
             }
 			
-            if (spells[Spells.Q].IsReady() && ElVarusMenu.Menu.Item("ElVarus.Combo.Q").IsActive() && ElVarusMenu.Menu.Item("ElVarus.omfgabriel").IsActive() == true)
+            if (spells[Spells.Q].IsReady() && ElVarusMenu.Menu.Item("ElVarus.Combo.Q").IsActive() && ElVarusMenu.Menu.Item("ElVarus.omfgabriel").GetValue<StringList>().SelectedIndex == 1)
             {
                 if (spells[Spells.Q].IsCharging || ElVarusMenu.Menu.Item("ElVarus.combo.always.Q").IsActive()
                     || target.Distance(Player) > Orbwalking.GetRealAutoAttackRange(target) * 1.2f
@@ -144,7 +162,7 @@ namespace Elvarus
 
                     if (spells[Spells.Q].IsCharging)
                     {
-                        if (ObjectManager.Player.HealthPercent <= 30 || target.Distance(ObjectManager.Player) < 1200)	
+                        if (ObjectManager.Player.HealthPercent <= 30 || target.Distance(ObjectManager.Player) < 1500)	
                             
 							{
                                 spells[Spells.Q].Cast(target);
@@ -315,13 +333,29 @@ namespace Elvarus
                     if (spells[Spells.Q].IsCharging)
                     {
                         var prediction = spells[Spells.Q].GetPrediction(target);
-                        if (prediction.Hitchance >= HitChance.VeryHigh)
+                        if (prediction.Hitchance >= HitChance.Medium)
                         {
                             spells[Spells.Q].Cast(prediction.CastPosition);
                         }
                     }
                 }
             }
+			
+            if (ElVarusMenu.Menu.Item("ElVarus.KSSS").IsActive() && spells[Spells.E].IsReady())
+            {
+                if (spells[Spells.E].IsCharging)
+                {
+                    return;
+                }
+
+                var killableEnemy =
+                    HeroManager.Enemies.FirstOrDefault(e => spells[Spells.E].IsKillable(e) && !Orbwalking.InAutoAttackRange(e) && e.IsValidTarget(spells[Spells.E].Range + spells[Spells.E].Width));
+
+                if (killableEnemy != null)
+                {
+                    spells[Spells.E].Cast(killableEnemy);
+                }
+            }			
         }
 
         private static void LaneClear()

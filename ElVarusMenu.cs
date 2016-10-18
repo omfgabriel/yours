@@ -31,13 +31,14 @@ namespace Elvarus
 
             cMenu.AddItem(new MenuItem("ElVarus.Combo.Q", "Use Q").SetValue(true));
             cMenu.AddItem(new MenuItem("ElVarus.combo.always.Q", "always Q").SetValue(false));
-            cMenu.AddItem(new MenuItem("ElVarus.omfgabriel", "AD mode").SetValue(false));				
+            cMenu.AddItem(new MenuItem("ElVarus.omfgabriel", "Mode").SetValue(new StringList(new[] { "AP Mode", "AD Mode" }, 0)));				
             cMenu.AddItem(new MenuItem("ElVarus.Combo.E", "Use E").SetValue(true));
             cMenu.AddItem(new MenuItem("ElVarus.Combo.R", "Use R").SetValue(true));
             cMenu.AddItem(new MenuItem("ElVarus.Combo.W.Focus", "Focus W target").SetValue(false));
             cMenu.AddItem(new MenuItem("ElVarus.sssss", ""));
             cMenu.AddItem(new MenuItem("ElVarus.Combo.R.Count", "R when enemies >= ")).SetValue(new Slider(1, 1, 5));
             cMenu.AddItem(new MenuItem("ElVarus.Combo.Stack.Count", "Q when stacks >= ")).SetValue(new Slider(3, 1, 3));
+            cMenu.AddItem(new MenuItem("ElVarus.ComboE.Stack.Count", "AP Only - E when stacks >= ")).SetValue(new Slider(3, 1, 3));			
             cMenu.AddItem(new MenuItem("ElVarus.sssssssss", ""));
             cMenu.AddItem(
                 new MenuItem("ElVarus.SemiR", "Semi-manual cast R key").SetValue(
